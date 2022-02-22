@@ -28,6 +28,7 @@ Properties:
               - dynamodb:Scan
               - dynamodb:GetItem
               - dynamodb:PutItem
+              - dynamodb:DeleteItem
             Resource: "*"
     - PolicyName: CanUseAPI
       PolicyDocument:

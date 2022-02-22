@@ -5,7 +5,7 @@ export class APIGateway {
 
   constructor(endpoint: string) {
     this.api = new AWS.ApiGatewayManagementApi({
-      apiVersion: "2018-11-29",
+      apiVersion: "latest",
       endpoint,
     });
   }

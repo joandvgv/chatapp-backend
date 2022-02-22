@@ -8,7 +8,6 @@ import { applyBaseMiddlewares } from "../middlewares/applyBase.middleware";
 import { apiResponse } from "../utils/api";
 import { DynamoTable } from "../lib/aws/DynamoTable";
 import { DYNAMODB_WEBSOCKET_TABLE, WEBSOCKET_ENDPOINT } from "../constants";
-// import { IAuthorizedEvent } from "middy-middleware-jwt-auth";
 import { APIGateway } from "./../lib/aws/APIGateway";
 
 const getAllPosts = () => {
@@ -35,13 +34,22 @@ const createPost = async (
 
   const { Items: connections } = await dynamoTable.getDocuments();
 
-  const promises = connections?.map(({ connectionId }) =>
+  if (!connections?.length) return post;
+
+  const promises = connections.map(({ connectionId }) =>
     websocket.sendMessage(connectionId, {
       message,
       username,
     })
   );
-  await Promise.allSettled(promises ?? []);
+
+  const result = await Promise.allSettled(promises ?? []);
+  const rejectedPromises = result.filter((item) => item.status === "rejected");
+  const cleanStalledConnections = rejectedPromises.map((_, idx) =>
+    dynamoTable.deleteDocument({ connectionId: connections[idx].connectionId })
+  );
+  await Promise.all(cleanStalledConnections);
+
   return post;
 };
 
