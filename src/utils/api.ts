@@ -11,11 +11,9 @@ export const apiResponse = <T extends object>(
     throw new Error(`Invalid HTTP status code: ${statusCode}`);
   }
 
-  const stringifiedBody = JSON.stringify(body ?? {});
-
   return {
     statusCode,
-    body: stringifiedBody,
+    body,
     headers: {
       // TODO: limit access control to domain specific after
       "Access-Control-Allow-Origin": "*",

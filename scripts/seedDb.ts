@@ -1,4 +1,5 @@
 import User from "../src/models/User";
+import Post from "../src/models/Post";
 import faker from "faker";
 import dotenv from "dotenv";
 
@@ -12,6 +13,7 @@ seed();
 async function seed() {
   // create tables
   await User.sync({ force: true });
+  await Post.sync({ force: true });
   //insert data
 
   const users = new Array(10).fill(null).map((_, idx) =>

@@ -16,6 +16,7 @@ provider:
     DB_NAME: ${self:custom.DB_NAME}
     USERNAME: ${self:custom.USERNAME}
     PASSWORD: ${self:custom.PASSWORD}
+    TOKEN_SECRET: ${self:custom.TOKEN_SECRET}
 
 custom: ${file(./secrets.yml)}
 
@@ -51,9 +52,14 @@ functions:
       - httpApi:
           path: /users/{username}
           method: get
+
+  newUsers:
+    handler: src/handlers/users.mainNewUsers
+    events:
       - httpApi:
           path: /users
           method: post
+
   posts:
     handler: src/handlers/posts.main
     events:

@@ -17,9 +17,9 @@ export default class Post extends Model {
 
   @ForeignKey(() => User)
   @Column({
-    type: types.bigint,
+    type: types.uuid,
   })
-  userId: number;
+  userId: string;
 
   @BelongsTo(() => User)
   user: User;

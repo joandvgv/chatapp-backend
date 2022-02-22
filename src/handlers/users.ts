@@ -5,7 +5,8 @@ import UsersActions from "../actions/users.actions";
 import { LambdaEvent } from "./../types/aws-lambda";
 import { applyBaseMiddlewares } from "./../middlewares/applyBase.middleware";
 import { apiResponse } from "./../utils/api";
-import { APIError } from "../utils/error";
+import createHttpError from "http-errors";
+import jwt from "jsonwebtoken";
 
 const getAllUsers = () => {
   return UsersActions.getAll();
@@ -15,7 +16,7 @@ const getUserById = (req: LambdaEvent) => {
   return UsersActions.getById(req.pathParameters?.username ?? "");
 };
 
-const createUser = (
+const createUser = async (
   req: LambdaEvent<{
     firstName: string;
     lastName: string;
@@ -23,18 +24,34 @@ const createUser = (
 ) => {
   const { firstName, lastName } = req.body;
   if (!firstName || !lastName) {
-    throw new APIError(400, "Malformed Payload");
+    throw createHttpError(400, "Malformed Payload");
   }
-  return UsersActions.create(req.body);
+  const user = await UsersActions.create(req.body);
+  const token = jwt.sign(
+    {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+    },
+    process.env.TOKEN_SECRET as string,
+    {
+      expiresIn: "1 hour",
+    }
+  );
+  return { user, token };
 };
 
+export const newUser: Handler<LambdaEvent, APIGatewayProxyResult> = async (
+  event
+) => {
+  return apiResponse(200, await createUser(event));
+};
 export const users: Handler<LambdaEvent, APIGatewayProxyResult> = async (
   event
 ) => {
   const mappingFunction: Record<string, (event: LambdaEvent) => any> = {
     "GET /users": getAllUsers,
     "GET /users/{username}": getUserById,
-    "POST /users": createUser,
   };
 
   const path = event.routeKey;
@@ -44,3 +61,4 @@ export const users: Handler<LambdaEvent, APIGatewayProxyResult> = async (
 };
 
 export const main = applyBaseMiddlewares(users);
+export const mainNewUsers = applyBaseMiddlewares(newUser, false);

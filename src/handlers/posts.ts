@@ -1,9 +1,12 @@
+import "reflect-metadata";
+import "../database";
 import { Handler, APIGatewayProxyResult } from "aws-lambda";
+import createHttpError from "http-errors";
 import PostsActions from "../actions/posts.actions";
 import { LambdaEvent } from "../types/aws-lambda";
 import { applyBaseMiddlewares } from "../middlewares/applyBase.middleware";
 import { apiResponse } from "../utils/api";
-import { APIError } from "../utils/error";
+// import { IAuthorizedEvent } from "middy-middleware-jwt-auth";
 
 const getAllPosts = () => {
   return PostsActions.getAll();
@@ -16,12 +19,15 @@ const createPost = (
 ) => {
   const { message } = req.body;
   if (!message) {
-    throw new APIError(400, "Malformed Payload");
+    throw new createHttpError.BadRequest("Malformed Payload");
   }
-  return PostsActions.create(req.body);
+  return PostsActions.create({
+    ...req.body,
+    userId: (req as any)["auth"]["payload"]["username"],
+  });
 };
 
-export const main: Handler<LambdaEvent, APIGatewayProxyResult> = async (
+export const posts: Handler<LambdaEvent, APIGatewayProxyResult> = async (
   event
 ) => {
   const mappingFunction: Record<string, (event: LambdaEvent) => any> = {
@@ -35,4 +41,4 @@ export const main: Handler<LambdaEvent, APIGatewayProxyResult> = async (
   return apiResponse(200, await fn(event));
 };
 
-export const users = applyBaseMiddlewares(main);
+export const main = applyBaseMiddlewares(posts);
