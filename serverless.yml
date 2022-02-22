@@ -42,6 +42,8 @@ resources:
 
     PostgreSqlRDSInstance: ${file(./resource/PostgreSqlRDSInstance.yml)}
 
+    DynamoDB: ${file(./resource/DynamoDB.yml)}
+
 functions:
   users:
     handler: src/handlers/users.main
@@ -69,3 +71,24 @@ functions:
       - httpApi:
           path: /posts
           method: post
+
+  connectionHandler:
+    handler: src/handlers/websocket.connection
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+
+  # customFooHandler:
+  #   handler: handler.fooHandler
+  #   events:
+  #     - websocket:
+  #         route: foo # will trigger if $request.body.action === "foo"
+
+  # notifyHandler:
+  #   handler: src/handlers/websocket.notify
+  #   events:
+  #     - websocket:
+  #         route: notify
+  #         routeResponseSelectionExpression: $default

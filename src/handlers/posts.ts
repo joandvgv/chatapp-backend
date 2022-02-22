@@ -6,13 +6,16 @@ import PostsActions from "../actions/posts.actions";
 import { LambdaEvent } from "../types/aws-lambda";
 import { applyBaseMiddlewares } from "../middlewares/applyBase.middleware";
 import { apiResponse } from "../utils/api";
+import { DynamoTable } from "../lib/aws/DynamoTable";
+import { DYNAMODB_WEBSOCKET_TABLE, WEBSOCKET_ENDPOINT } from "../constants";
 // import { IAuthorizedEvent } from "middy-middleware-jwt-auth";
+import { APIGateway } from "./../lib/aws/APIGateway";
 
 const getAllPosts = () => {
   return PostsActions.getAll();
 };
 
-const createPost = (
+const createPost = async (
   req: LambdaEvent<{
     message: string;
   }>
@@ -21,10 +24,25 @@ const createPost = (
   if (!message) {
     throw new createHttpError.BadRequest("Malformed Payload");
   }
-  return PostsActions.create({
+  const dynamoTable = new DynamoTable(DYNAMODB_WEBSOCKET_TABLE);
+  const websocket = new APIGateway(WEBSOCKET_ENDPOINT);
+  const username = (req as any)["auth"]["payload"]["username"]; //TODO: fix type info
+
+  const post = await PostsActions.create({
     ...req.body,
-    userId: (req as any)["auth"]["payload"]["username"],
+    userId: username,
   });
+
+  const { Items: connections } = await dynamoTable.getDocuments();
+
+  const promises = connections?.map(({ connectionId }) =>
+    websocket.sendMessage(connectionId, {
+      message,
+      username,
+    })
+  );
+  await Promise.allSettled(promises ?? []);
+  return post;
 };
 
 export const posts: Handler<LambdaEvent, APIGatewayProxyResult> = async (
