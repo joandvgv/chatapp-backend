@@ -8,8 +8,8 @@ import { apiResponse } from "./../utils/api";
 import createHttpError from "http-errors";
 import jwt from "jsonwebtoken";
 
-const getAllUsers = () => {
-  return UsersActions.getAll();
+const getAllUsers = async () => {
+  return { users: await UsersActions.getAll() };
 };
 
 const getUserById = (req: LambdaEvent) => {
@@ -44,7 +44,15 @@ const createUser = async (
 export const newUser: Handler<LambdaEvent, APIGatewayProxyResult> = async (
   event
 ) => {
-  return apiResponse(200, await createUser(event));
+  const { user, token } = await createUser(event);
+
+  return apiResponse(
+    200,
+    { user, token },
+    {
+      "Set-Cookie": `token=${token}; SameSite=None; HttpOnly; Secure`,
+    }
+  );
 };
 export const users: Handler<LambdaEvent, APIGatewayProxyResult> = async (
   event

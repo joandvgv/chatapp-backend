@@ -3,7 +3,7 @@ import jsonBodyParser from "@middy/http-json-body-parser";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpSecurityHeaders from "@middy/http-security-headers";
 import parseRequest from "./parseRequest.middleware";
-import { Handler } from "aws-lambda";
+import { APIGatewayProxyEventV2, Handler } from "aws-lambda";
 import errorHandler from "@schibsted/middy-error-handler";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import JWTAuthMiddleware, {
@@ -43,6 +43,8 @@ export const applyBaseMiddlewares = <T, K>(
               credentialsRequired: true,
               isPayload: isTokenPayload,
               secretOrPublicKey: process.env.TOKEN_SECRET as string,
+              tokenSource: (event: APIGatewayProxyEventV2) =>
+                event.cookies?.[0]?.split("token=")?.[1] as string,
             })
           : { before: () => {} }
       )

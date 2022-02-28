@@ -9,9 +9,10 @@ import { apiResponse } from "../utils/api";
 import { DynamoTable } from "../lib/aws/DynamoTable";
 import { DYNAMODB_WEBSOCKET_TABLE, WEBSOCKET_ENDPOINT } from "../constants";
 import { APIGateway } from "./../lib/aws/APIGateway";
+import UsersActions from "./../actions/users.actions";
 
-const getAllPosts = () => {
-  return PostsActions.getAll();
+const getAllPosts = async () => {
+  return { posts: await PostsActions.getAll() };
 };
 
 const createPost = async (
@@ -31,6 +32,7 @@ const createPost = async (
     ...req.body,
     userId: username,
   });
+  const user = await UsersActions.getById(username);
 
   const { Items: connections } = await dynamoTable.getDocuments();
 
@@ -39,7 +41,7 @@ const createPost = async (
   const promises = connections.map(({ connectionId }) =>
     websocket.sendMessage(connectionId, {
       message,
-      username,
+      user: user,
     })
   );
 

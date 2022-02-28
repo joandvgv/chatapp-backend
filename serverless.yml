@@ -8,6 +8,22 @@ provider:
   region: us-east-1
   iam:
     role: LambdaRole
+  httpApi:
+    cors:
+      allowedOrigins:
+        - http://localhost:3000
+        - https://naughty-noether-ea5b97.netlify.app/
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+      allowCredentials: true
+      maxAge: 6000 # In seconds
+
   environment:
     #postgresql
     POSTGRESQL_HOST: ${self:custom.POSTGRESQL.HOST}
