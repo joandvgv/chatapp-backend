@@ -2,7 +2,6 @@ import middy from "@middy/core";
 import jsonBodyParser from "@middy/http-json-body-parser";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpSecurityHeaders from "@middy/http-security-headers";
-import parseRequest from "./parseRequest.middleware";
 import { APIGatewayProxyEventV2, Handler } from "aws-lambda";
 import errorHandler from "@schibsted/middy-error-handler";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
@@ -22,7 +21,6 @@ export const applyBaseMiddlewares = <T, K>(
       .use(jsonBodyParser())
       .use(httpEventNormalizer())
       .use(httpSecurityHeaders())
-      .use(parseRequest())
       .use(
         httpResponseSerializer({
           serializers: [

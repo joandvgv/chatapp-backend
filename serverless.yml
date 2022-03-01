@@ -12,7 +12,7 @@ provider:
     cors:
       allowedOrigins:
         - http://localhost:3000
-        - https://naughty-noether-ea5b97.netlify.app/
+        - https://naughty-noether-ea5b97.netlify.app
       allowedHeaders:
         - Content-Type
         - Authorization
@@ -95,16 +95,3 @@ functions:
           route: $connect
       - websocket:
           route: $disconnect
-
-  # customFooHandler:
-  #   handler: handler.fooHandler
-  #   events:
-  #     - websocket:
-  #         route: foo # will trigger if $request.body.action === "foo"
-
-  # notifyHandler:
-  #   handler: src/handlers/websocket.notify
-  #   events:
-  #     - websocket:
-  #         route: notify
-  #         routeResponseSelectionExpression: $default

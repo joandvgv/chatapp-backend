@@ -15,7 +15,6 @@ export const apiResponse = <T extends object>(
     statusCode,
     body: body as unknown as string, // will be parsed by middleware,
     headers: {
-      // TODO: limit access control to domain specific after
       "Access-Control-Allow-Origin":
         "https://naughty-noether-ea5b97.netlify.app", //TODO: update,
       "Access-Control-Allow-Credentials": true,
