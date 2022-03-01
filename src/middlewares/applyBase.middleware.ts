@@ -15,36 +15,33 @@ export const applyBaseMiddlewares = <T, K>(
   handler: Handler<T, K>,
   requiresAuth = true
 ) => {
-  return (
-    middy(handler)
-      .use(httpHeaderNormalizer())
-      .use(jsonBodyParser())
-      .use(httpEventNormalizer())
-      .use(httpSecurityHeaders())
-      .use(
-        httpResponseSerializer({
-          serializers: [
-            {
-              regex: /^application\/json$/,
-              serializer: ({ body }) => JSON.stringify(body),
-            },
-          ],
-          default: "application/json",
-        })
-      )
-      // .use(parseErrorsMiddleware())
-      .use(errorHandler())
-      .use(
-        requiresAuth
-          ? JWTAuthMiddleware({
-              algorithm: EncryptionAlgorithms.HS256,
-              credentialsRequired: true,
-              isPayload: isTokenPayload,
-              secretOrPublicKey: process.env.TOKEN_SECRET as string,
-              tokenSource: (event: APIGatewayProxyEventV2) =>
-                event.cookies?.[0]?.split("token=")?.[1] as string,
-            })
-          : { before: () => {} }
-      )
-  );
+  return middy(handler)
+    .use(httpHeaderNormalizer())
+    .use(jsonBodyParser())
+    .use(httpEventNormalizer())
+    .use(httpSecurityHeaders())
+    .use(
+      httpResponseSerializer({
+        serializers: [
+          {
+            regex: /^application\/json$/,
+            serializer: ({ body }) => JSON.stringify(body),
+          },
+        ],
+        default: "application/json",
+      })
+    )
+    .use(errorHandler())
+    .use(
+      requiresAuth
+        ? JWTAuthMiddleware({
+            algorithm: EncryptionAlgorithms.HS256,
+            credentialsRequired: true,
+            isPayload: isTokenPayload,
+            secretOrPublicKey: process.env.TOKEN_SECRET as string,
+            tokenSource: (event: APIGatewayProxyEventV2) =>
+              event.cookies?.[0]?.split("token=")?.[1] as string,
+          })
+        : { before: () => {} }
+    );
 };
